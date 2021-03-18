@@ -1,0 +1,43 @@
+<?php
+require('../config/config.php'); 
+include('../include/fonction.php');
+require('../include/annee_scolaire.php');
+sec_session_start();
+inactivite(); 
+if(login_check($mysqli) == true ) {
+         //Add your protected page content here!
+} else { 
+        header ('Location: '.HOME_LINK.'login.php');
+}
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Traitement</title>
+</head>
+
+<body>
+<?php 
+if(isset($_POST['go'])){
+extract($_POST);
+// si vide
+if(empty($nom) || empty($prenoms) || empty($sexe) || empty($date_nai) || empty($contact)){
+	die('<h3 align="center" style="color:red;">TOUS LES CHAMPS SONT OBLIGATOIRES</h3>');
+}
+	// Si prof existe deja sous le numero de tels
+	if(!empty(siUnExi('professeurs','contacts',$contact,$mysqli))){
+		die('<h3 align="center" style="color:red;">CE NUMERO DE CONTACT EXISTE DEJA SOUS UN AUTRE NOM</h3>');
+	}
+	// Insertion dans la DB
+	$sql=$mysqli->prepare("INSERT INTO professeurs (nom,prenoms,sexe,date_nai,contacts,adresse,email,profession,diplome,photo) VALUES (?,?,?,?,?,?,?,?,?,?)") or die(mysqli_error($mysqli));
+	$sql->bind_param('ssssssssss',$nom,$prenoms,$sexe,$date_nai,$contact,$adresse,$email,$profession,$diplome,$photo);
+	if(!$sql->execute()){
+		die('<h3 style="color:red;" align="center">ERREUR</h3>'.mysqli_error($mysqli));
+	} else{
+		header('Location:'.$_SERVER['HTTP_REFERER'].'&ajoutyes');
+	}
+}
+?>
+</body>
+</html>
